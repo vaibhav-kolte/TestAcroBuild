@@ -7,11 +7,15 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,6 +26,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.material.navigation.NavigationView;
+import com.vaibhav_kolte.vaibhavacrobuild.databinding.ActivityMainBinding;
 
 import org.eazegraph.lib.charts.PieChart;
 import org.eazegraph.lib.models.PieModel;
@@ -34,18 +39,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public DrawerLayout drawerLayout;
     public ActionBarDrawerToggle actionBarDrawerToggle;
     NavigationView navigationView;
-    PieChart pieChartActiveUser, piechartProjectWiseUser;
-    private TextView textView;
+    private Context context;
+    private ActivityMainBinding binding;
 
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+        try{
+            context = MainActivity.this;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        textView = findViewById(R.id.tvResponse);
-        pieChartActiveUser = findViewById(R.id.piechartActiveUser);
-        piechartProjectWiseUser = findViewById(R.id.piechartProjectWiseUser);
+        context = MainActivity.this;
         navigationView = findViewById(R.id.navView);
         navigationView.setNavigationItemSelectedListener(this);
 
@@ -73,6 +82,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         callLogin_LeaderBoardAPI();
 
+        Button crudOperationButton = findViewById(R.id.buttonShowCRUDOperation);
+        crudOperationButton.setOnClickListener(v -> {
+            if(TextUtils.isEmpty(SharePref.readSharedPref(context,SharePref.userId))) {
+                Intent intent = new Intent(this, CrudOperationActivity.class);
+                startActivity(intent);
+            }
+            else{
+                Intent intent = new Intent(this, HomeActivity.class);
+                startActivity(intent);
+            }
+        });
+
     }
 
     private void callLogin_LeaderBoardAPI() {
@@ -85,15 +106,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                     response -> {
                         // Display the first 500 characters of the response string.
-                        textView.setText("login-leaderboard Response is: " + response.toString());
-                        Toast.makeText(MainActivity.this, "success", Toast.LENGTH_SHORT).show();
-                    }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    textView.setText("That didn't work!");
-                    Toast.makeText(MainActivity.this, "Fail", Toast.LENGTH_SHORT).show();
-                }
-            });
+                        binding.tvResponse.setText("login-leaderboard Response is: " + response.toString());
+                        Toast.makeText(MainActivity.this, "API call successfully", Toast.LENGTH_SHORT).show();
+                    }, error -> {
+                        binding.tvResponse.setText("That didn't work!");
+                        Toast.makeText(MainActivity.this, "API call fail", Toast.LENGTH_SHORT).show();
+                    });
 
             // Add the request to the RequestQueue.
             queue.add(stringRequest);
@@ -103,44 +121,44 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void showProjectWiseUser() {
-        piechartProjectWiseUser.addPieSlice(
+        binding.piechartProjectWiseUser.addPieSlice(
                 new PieModel(
                         "R",
                         Integer.parseInt("40"),
                         Color.parseColor("#FFA726")));
-        piechartProjectWiseUser.addPieSlice(
+        binding.piechartProjectWiseUser.addPieSlice(
                 new PieModel(
                         "Python",
                         Integer.parseInt("20"),
                         Color.parseColor("#66BB6A")));
-        piechartProjectWiseUser.addPieSlice(
+        binding.piechartProjectWiseUser.addPieSlice(
                 new PieModel(
                         "C++",
                         Integer.parseInt("20"),
                         Color.parseColor("#EF5350")));
-        piechartProjectWiseUser.addPieSlice(
+        binding.piechartProjectWiseUser.addPieSlice(
                 new PieModel(
                         "Java",
                         Integer.parseInt("20"),
                         Color.parseColor("#29B6F6")));
 
         // To animate the pie chart
-        piechartProjectWiseUser.startAnimation();
+        binding.piechartProjectWiseUser.startAnimation();
     }
 
     private void showActiveUserGraph() {
-        pieChartActiveUser.addPieSlice(
+        binding.piechartActiveUser.addPieSlice(
                 new PieModel(
                         "R",
                         Integer.parseInt("40"),
                         Color.parseColor("#FFA726")));
-        pieChartActiveUser.addPieSlice(
+        binding.piechartActiveUser.addPieSlice(
                 new PieModel(
                         "Python",
                         Integer.parseInt("60"),
                         Color.parseColor("#66BB6A")));
 
-        pieChartActiveUser.startAnimation();
+        binding.piechartActiveUser.startAnimation();
     }
 
     @SuppressLint("NonConstantResourceId")
